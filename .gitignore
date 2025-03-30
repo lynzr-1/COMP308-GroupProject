@@ -1,0 +1,13 @@
+# Ignore IDE junk
+*.log
+.DS_Store
+Thumbs.db
+
+# Ignore environment files anywhere
+**/.env
+
+# Ignore node_modules recursively
+**/node_modules
+
+# Ignore frontend build
+/frontend/dist

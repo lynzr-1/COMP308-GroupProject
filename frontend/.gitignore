@@ -1,0 +1,15 @@
+# Node modules
+node_modules/
+
+# Build output
+dist/
+
+# Env variables
+.env
+
+# Vite files
+.vite/
+.cache/
+
+# Misc
+.DS_Store
