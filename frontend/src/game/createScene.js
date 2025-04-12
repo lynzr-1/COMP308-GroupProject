@@ -93,9 +93,24 @@ export function createScene(engine, canvas) {
             placeCoins(scene, 15);
             
             //check for collisions with collectibles
+            let scoreSubmitted = false;
+
             scene.onBeforeRenderObservable.add(() => {
-                checkCoinCollection(scene, playerMesh, coinSound);
+                checkCoinCollection(scene, playerMesh/* , coinSound */);
+            
+                // Submit score once when all coins are collected
+                if (!scoreSubmitted && scene.metadata.coins?.length === 0) {
+                    scoreSubmitted = true;
+            
+                    const score = scene.metadata?.score || 0;
+                    const level = 1;
+            
+                    import("../utils/scoreSubmit").then(({ submitScore }) => {
+                        submitScore(score, level);
+                    });
+                }
             });
+            
         });
     });
 
