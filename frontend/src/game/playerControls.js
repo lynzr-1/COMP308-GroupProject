@@ -2,44 +2,116 @@ import * as BABYLON from "@babylonjs/core";
 import { tileSize } from "./constants";
 
 export default function setupPlayerControls(scene, startPos) {
+
   const mazeArray = scene.metadata?.mazeArray;
+  const canvas = scene.getEngine().getRenderingCanvas();
 
   if (!mazeArray) {
     console.warn("No mazeArray found in scene metadata");
     return;
   }
 
-  const playerMesh = BABYLON.MeshBuilder.CreateBox("player", { size: 1 }, scene);
-  playerMesh.position = startPos.clone();
+  //-----LOAD PLAYER MESH
 
-  //mze coordinates
-  let playerPos = {
-    x: Math.floor(startPos.x / tileSize),
-    z: Math.floor(startPos.z / tileSize),
-  };
+  return BABYLON.SceneLoader.LoadAssetContainerAsync("/assets/", "Dummy.glb", scene).then((container) => {
+    
+      container.addAllToScene();
 
-  function updatePos() {
-    playerMesh.position.x = playerPos.x * tileSize;
-    playerMesh.position.z = playerPos.z * tileSize;
-  }
+      const character = container.meshes[0];
 
-  updatePos();
+      let spawnX = Math.floor(startPos.x / tileSize);
+      let spawnZ = Math.floor(startPos.z / tileSize);
+      
+      // If the tile is not walkable, find the first walkable one
+      if (mazeArray[spawnZ]?.[spawnX] !== 0) {
+        outer:
+        for (let z = 0; z < mazeArray.length; z++) {
+          for (let x = 0; x < mazeArray[0].length; x++) {
+            if (mazeArray[z][x] === 0) {
+              spawnX = x;
+              spawnZ = z;
+              break outer;
+            }
+          }
+        }
+      }
+      
+      //position player
+      character.position = new BABYLON.Vector3(spawnX * tileSize, 0, spawnZ * tileSize);
+      character.scaling = new BABYLON.Vector3(0.8, 0.8, 0.8); //change size of player
+      character.rotation.y = Math.PI; //rotate player 180 degrees
 
-  scene.onKeyboardObservable.add((kbInfo) => {
-    if (kbInfo.type === BABYLON.KeyboardEventTypes.KEYDOWN) {
-      let { x, z } = playerPos;
+      //animations
+      const walkAnim = container.animationGroups.find(a => a.name.toLowerCase().includes("walk"));
+      const idleAnim = container.animationGroups.find(a => a.name.toLowerCase().includes("idle"));      
+      if (idleAnim) idleAnim.start(true);
+      
+      //store position
+      let playerPos = { x: spawnX, z: spawnZ };
 
-      switch (kbInfo.event.key.toLowerCase()) {
-        case "w": z--; break;
-        case "s": z++; break;
-        case "a": x--; break;
-        case "d": x++; break;
+      function moveTo(newX, newZ) {
+        const target = new BABYLON.Vector3(newX * tileSize, 0, newZ * tileSize);
+
+        //rotate character to face the direction of movement
+        const dx = newX - playerPos.x;
+        const dz = newZ - playerPos.z;
+        const angle = Math.atan2(dx, dz) + Math.PI;
+        character.rotation.y = angle;
+
+        if (walkAnim) walkAnim.start(true);
+        if (idleAnim) idleAnim.stop();
+
+        BABYLON.Animation.CreateAndStartAnimation(
+          "move",
+          character,
+          "position",
+          60,
+          15,
+          character.position.clone(),
+          target,
+          BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
+          null,
+          () => {
+            if (walkAnim) walkAnim.stop();
+            if (idleAnim) idleAnim.start(true);
+          }
+        );
       }
 
-      if (mazeArray[z]?.[x] === 0) {
-        playerPos = { x, z };
-        updatePos();
-      }
-    }
-  });
+      // Handle keyboard input
+      scene.onKeyboardObservable.add((kbInfo) => {
+        if (kbInfo.type === BABYLON.KeyboardEventTypes.KEYDOWN) {
+          let { x, z } = playerPos;
+
+          switch (kbInfo.event.key.toLowerCase()) {
+            case "w": z++; break;
+            case "s": z--; break;
+            case "a": x--; break;
+            case "d": x++; break;
+            default: return;
+          }
+
+          if (mazeArray[z]?.[x] === 0) {
+            moveTo(x, z);
+            playerPos = { x, z };
+          }
+        }
+      });
+           
+      // Setup follow camera
+      const camera = new BABYLON.FollowCamera("followCam", character.position, scene);
+      camera.lockedTarget = character;
+      camera.radius = 10;
+      camera.heightOffset = 15;
+      camera.cameraAcceleration = 0.02;
+      camera.maxCameraSpeed = 2;
+      camera.lowerRadiusLimit = 10;
+      camera.upperRadiusLimit = 10;
+      camera.attachControl(canvas, true);
+      camera.inputs.clear();
+      scene.activeCamera = camera;
+
+      return character; 
+
+    });
 }
