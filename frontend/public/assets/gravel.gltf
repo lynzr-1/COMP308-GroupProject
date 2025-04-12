@@ -68,15 +68,15 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":1791,
+			"count":1809,
 			"max":[
 				1.0436145067214966,
-				1.0419138669967651,
+				2.0419139862060547,
 				1.0437394380569458
 			],
 			"min":[
 				-1.0449893474578857,
-				-1.0466901063919067,
+				-0.04669010639190674,
 				-1.044864296913147
 			],
 			"type":"VEC3"
@@ -84,13 +84,13 @@
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":1791,
+			"count":1809,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":1791,
+			"count":1809,
 			"type":"VEC2"
 		},
 		{
@@ -103,26 +103,26 @@
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":21492,
+			"byteLength":21708,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":21492,
-			"byteOffset":21492,
+			"byteLength":21708,
+			"byteOffset":21708,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":14328,
-			"byteOffset":42984,
+			"byteLength":14472,
+			"byteOffset":43416,
 			"target":34962
 		},
 		{
 			"buffer":0,
 			"byteLength":6492,
-			"byteOffset":57312,
+			"byteOffset":57888,
 			"target":34963
 		}
 	],
@@ -134,7 +134,7 @@
 	],
 	"buffers":[
 		{
-			"byteLength":63804,
+			"byteLength":64380,
 			"uri":"gravel.bin"
 		}
 	]
