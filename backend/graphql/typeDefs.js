@@ -18,10 +18,20 @@ const typeDefs = gql`
     wonAgainstAI: Boolean!
   }
 
+  type LeaderboardEntry {
+    id: ID!
+    username: String!
+    level: Int!
+    score: Int!
+    timeTaken: Int!
+    wonAgainstAI: Boolean!
+  }
+
+
   type Query {
     me: User
     getProgress(userId: String!): [Progress]
-    leaderboard: [Progress]
+    leaderboard(level: Int): [LeaderboardEntry]
   }
 
   type Mutation {

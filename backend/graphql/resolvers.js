@@ -10,7 +10,23 @@ const resolvers = {
       return await User.findById(user.id);
     },
     getProgress: async (_, { userId }) => await Progress.find({ userId }),
-    leaderboard: async () => await Progress.find().sort({ score: -1 }).limit(10),
+    leaderboard: async (_, { level }) => {
+      const filter = level ? { level } : {};
+    
+      const results = await Progress.find(filter)
+        .sort({ score: -1 })
+        .limit(10)
+        .populate('userId', 'username'); 
+    
+      return results.map(entry => ({
+        id: entry._id,
+        username: entry.userId.username,
+        level: entry.level,
+        score: entry.score,
+        timeTaken: entry.timeTaken,
+        wonAgainstAI: entry.wonAgainstAI,
+      }));
+    },
   },
   Mutation: {
     register: async (_, { username, password }) => {
@@ -27,9 +43,22 @@ const resolvers = {
     },
     saveProgress: async (_, args, { user }) => {
       if (!user) throw new Error("Unauthorized");
-      await Progress.create({ userId: user.id, ...args });
+    
+      const { level, score, timeTaken, wonAgainstAI } = args;
+    
+      const existing = await Progress.findOne({ userId: user.id, level });
+    
+      if (!existing || score > existing.score) {
+        await Progress.findOneAndUpdate(
+          { userId: user.id, level },
+          { score, timeTaken, wonAgainstAI },
+          { upsert: true, new: true }
+        );
+      }
+    
       return true;
     },
+    
   },
 };
 
