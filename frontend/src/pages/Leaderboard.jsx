@@ -17,19 +17,20 @@ const Leaderboard = ({ level = 1 }) => {
     variables: { level },
   });
 
-  if (loading) return <p>Loading leaderboard...</p>;
-  if (error) return <p>Error: {error.message}</p>;
+  if (loading) return <div className="alert alert-info">Loading leaderboard...</div>;
+  if (error) return <div className="alert alert-danger">Error: {error.message}</div>;
 
   return (
-    <div style={{ padding: "1rem" }}>
-      <h2>🏆 Leaderboard – Level {level}</h2>
-      <table>
-        <thead>
+    <div className="mt-4">
+      <h2 className="mb-3">Leaderboard – Level {level}</h2>
+      <p className="text-muted">(Sorted by highest score, then fastest time)</p>
+      <table className="table table-striped table-bordered">
+        <thead className="table-dark">
           <tr>
             <th>Rank</th>
             <th>Username</th>
             <th>Score</th>
-            <th>Time</th>
+            <th>Time (s)</th>
           </tr>
         </thead>
         <tbody>
@@ -38,7 +39,7 @@ const Leaderboard = ({ level = 1 }) => {
               <td>{index + 1}</td>
               <td>{entry.username}</td>
               <td>{entry.score}</td>
-              <td>{entry.timeTaken || "-"}</td>
+              <td>{entry.timeTaken ?? "-"}</td>
             </tr>
           ))}
         </tbody>
