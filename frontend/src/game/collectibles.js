@@ -57,19 +57,14 @@ export function placeCoins(scene, count = 10) {
         const dist = BABYLON.Vector3.Distance(coinCenter, playerPos);
     
         if (dist < 1.5) {
-          mesh.setEnabled(false); //hide collected coin
-          scene.metadata.score = (scene.metadata.score || 0) + 1;
-          //play sound
-          if (coinSound && coinSound.isReady()) {
-            coinSound.play();
-          } else {
-            console.warn("Sound not ready or missing:", coinSound);
-          }
-          console.log("Coin Collected! Score:", scene.metadata.score);
-          return false;
+            mesh.setEnabled(false); //hide collected coin
+            scene.metadata.score = (scene.metadata.score || 0) + 1;
+            //update score
+            console.log("Coin Collected! Score:", scene.metadata.score);
+            return false;
         }
     
         return true;
-      });
-    }
+    });
+}
   

@@ -1,19 +1,27 @@
 import * as BABYLON from "@babylonjs/core";
+import "@babylonjs/core/Audio/audioSceneComponent";
 import { generateMazeArray, generateMazeMeshes } from "./generateMaze";
 import { loadAssets } from "./assetLoader";
 import setupPlayerControls from "./playerControls";
-import { tileSize, createCoinSound } from "./constants";
+import { tileSize } from "./constants";
 import { placeCoins } from "./collectibles";
 import { checkCoinCollection } from "./collectibles";
-
 
 export function createScene(engine, canvas) {
 
     const scene = new BABYLON.Scene(engine);
     let playerMesh = null;
 
-    //-----AUDIO
-    const coinSound = createCoinSound(scene);
+    // //-----AUDIO
+    // const coinSound = new BABYLON.Sound(
+    //     "coinSound", //name
+    //     "/assets/coinSound.mp3", //location of file
+    //     scene, //where the sound should be played
+    //     function callback() { coinSound.play(); }, //callback function
+    //     {
+    //         volume: 0.5,
+    //         autoplay: false,
+    //     });
 
     //-----LIGHTING
     new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
@@ -83,7 +91,7 @@ export function createScene(engine, canvas) {
 
             //add collectibles
             placeCoins(scene, 15);
-
+            
             //check for collisions with collectibles
             scene.onBeforeRenderObservable.add(() => {
                 checkCoinCollection(scene, playerMesh, coinSound);
