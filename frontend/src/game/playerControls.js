@@ -38,8 +38,7 @@ export default function setupPlayerControls(scene, startPos) {
       
       //position player
       character.position = new BABYLON.Vector3(spawnX * tileSize, 0, spawnZ * tileSize);
-      character.scaling = new BABYLON.Vector3(0.8, 0.8, 0.8); //change size of player
-      character.rotation.y = Math.PI; //rotate player 180 degrees
+      character.scaling = new BABYLON.Vector3(0.7, 0.7, 0.7); //change size of player
 
       //animations
       const walkAnim = container.animationGroups.find(a => a.name.toLowerCase().includes("walk"));
@@ -55,12 +54,14 @@ export default function setupPlayerControls(scene, startPos) {
         //rotate character to face the direction of movement
         const dx = newX - playerPos.x;
         const dz = newZ - playerPos.z;
-        const angle = Math.atan2(dx, dz) + Math.PI;
-        character.rotation.y = angle;
+        const angle = Math.atan2(dz, dx);
+        character.rotation.y = -angle + Math.PI / 2;
 
+        //start animations
         if (walkAnim) walkAnim.start(true);
         if (idleAnim) idleAnim.stop();
 
+        //animate movement
         BABYLON.Animation.CreateAndStartAnimation(
           "move",
           character,
@@ -97,19 +98,6 @@ export default function setupPlayerControls(scene, startPos) {
           }
         }
       });
-           
-      // Setup follow camera
-      const camera = new BABYLON.FollowCamera("followCam", character.position, scene);
-      camera.lockedTarget = character;
-      camera.radius = 10;
-      camera.heightOffset = 15;
-      camera.cameraAcceleration = 0.02;
-      camera.maxCameraSpeed = 2;
-      camera.lowerRadiusLimit = 10;
-      camera.upperRadiusLimit = 10;
-      camera.attachControl(canvas, true);
-      camera.inputs.clear();
-      scene.activeCamera = camera;
 
       return character; 
 

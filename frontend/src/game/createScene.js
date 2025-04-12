@@ -2,11 +2,18 @@ import * as BABYLON from "@babylonjs/core";
 import { generateMazeArray, generateMazeMeshes } from "./generateMaze";
 import { loadAssets } from "./assetLoader";
 import setupPlayerControls from "./playerControls";
-import { tileSize } from "./constants";
+import { tileSize, createCoinSound } from "./constants";
+import { placeCoins } from "./collectibles";
+import { checkCoinCollection } from "./collectibles";
+
 
 export function createScene(engine, canvas) {
 
     const scene = new BABYLON.Scene(engine);
+    let playerMesh = null;
+
+    //-----AUDIO
+    const coinSound = createCoinSound(scene);
 
     //-----LIGHTING
     new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
@@ -32,14 +39,15 @@ export function createScene(engine, canvas) {
     
         //generate and place the maze
         const mazeArray = generateMazeArray(21, 21); //<--can change the size if needed but HAS to be odd numbers
-        scene.metadata = { mazeArray };
+        scene.metadata = scene.metadata || {};
+        scene.metadata.mazeArray = mazeArray;
 
         if (wallTemplate && floorTemplate) {
             generateMazeMeshes(scene, mazeArray, wallTemplate, floorTemplate);
         } else {
             console.error("Missing templates:", wallTemplate, floorTemplate);
         }
-
+        
         //determine player start position
         let playerStart;
 
@@ -53,11 +61,12 @@ export function createScene(engine, canvas) {
         if (playerStart) break;
         }
     
-        //add player controls
-        scene.metadata.mazeArray = mazeArray;
+        //-----CAMERA & PLAYER CONTROLS
+        setupPlayerControls(scene, playerStart).then(player => {
 
-        //-----CAMERA
-        setupPlayerControls(scene, playerStart).then(playerMesh => {
+            playerMesh = player;
+
+            //set up camera
             const camera = new BABYLON.FollowCamera("followCam", playerMesh.position, scene);
             camera.lockedTarget = playerMesh;
             camera.radius = 5;
@@ -66,10 +75,19 @@ export function createScene(engine, canvas) {
             camera.maxCameraSpeed = 2;
             camera.lowerRadiusLimit = 10;
             camera.upperRadiusLimit = 10;
-            scene.activeCamera = camera;
+            camera.useFixedFraming = true;
+            camera.allowAutoRotation = false;
             camera.attachControl(canvas, true);
             camera.inputs.clear();
             scene.activeCamera = camera;
+
+            //add collectibles
+            placeCoins(scene, 15);
+
+            //check for collisions with collectibles
+            scene.onBeforeRenderObservable.add(() => {
+                checkCoinCollection(scene, playerMesh, coinSound);
+            });
         });
     });
 
