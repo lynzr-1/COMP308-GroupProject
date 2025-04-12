@@ -2,7 +2,7 @@ import { gql } from "@apollo/client";
 import { client } from "../apollo/client";
 
 
-export const submitScore = async (score, level) => {
+export const submitScore = async (score, level, timeTaken) => {
   const SAVE_PROGRESS = gql`
     mutation SaveProgress($score: Int!, $level: Int!, $timeTaken: Int!, $wonAgainstAI: Boolean!) {
       saveProgress(score: $score, level: $level, timeTaken: $timeTaken, wonAgainstAI: $wonAgainstAI)
@@ -15,7 +15,7 @@ export const submitScore = async (score, level) => {
       variables: {
         score,
         level,
-        timeTaken: 0,         // Replace with actual time when tracked
+        timeTaken,         
         wonAgainstAI: false,  // handle later
       },
     });

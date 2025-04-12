@@ -14,9 +14,10 @@ const resolvers = {
       const filter = level ? { level } : {};
     
       const results = await Progress.find(filter)
-        .sort({ score: -1 })
+        .sort({ score: -1, timeTaken: 1 }) // Sort by highest score, then fastest time
         .limit(10)
-        .populate('userId', 'username'); 
+        .populate('userId', 'username');
+
     
       return results.map(entry => ({
         id: entry._id,

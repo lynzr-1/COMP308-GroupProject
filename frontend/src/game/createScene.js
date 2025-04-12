@@ -10,6 +10,8 @@ import { checkCoinCollection } from "./collectibles";
 export function createScene(engine, canvas) {
 
     const scene = new BABYLON.Scene(engine);
+    const levelStartTime = Date.now();
+
     let playerMesh = null;
 
     // //-----AUDIO
@@ -106,7 +108,8 @@ export function createScene(engine, canvas) {
                     const level = 1;
             
                     import("../utils/scoreSubmit").then(({ submitScore }) => {
-                        submitScore(score, level);
+                        const timeTaken = Math.floor((Date.now() - levelStartTime) / 1000); // seconds
+                        submitScore(score, level, timeTaken);
                     });
                 }
             });
