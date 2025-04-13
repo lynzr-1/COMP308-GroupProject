@@ -56,7 +56,7 @@ const Login = ({ onLogin }) => {
               required
             />
           </div>
-          <button className="btn btn-primary w-100" disabled={loading}>
+          <button className="btn btn-primary" disabled={loading}>
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>

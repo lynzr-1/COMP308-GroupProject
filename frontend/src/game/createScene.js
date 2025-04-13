@@ -12,18 +12,14 @@ export function createScene(engine, canvas) {
     const scene = new BABYLON.Scene(engine);
     const levelStartTime = Date.now();
 
+    //initialize player mesh variable
     let playerMesh = null;
 
-    // //-----AUDIO
-    // const coinSound = new BABYLON.Sound(
-    //     "coinSound", //name
-    //     "/assets/coinSound.mp3", //location of file
-    //     scene, //where the sound should be played
-    //     function callback() { coinSound.play(); }, //callback function
-    //     {
-    //         volume: 0.5,
-    //         autoplay: false,
-    //     });
+    //change background colour
+    scene.clearColor = new BABYLON.Color4(0.1176, 0.1098, 0.1294, 0.5);
+
+    //-----AUDIO
+    const coinSound = new BABYLON.Sound("coinSound", "/assets/coinSound.mp3", scene, null, { volume: 0.5, });
 
     //-----LIGHTING
     new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
@@ -98,7 +94,7 @@ export function createScene(engine, canvas) {
             let scoreSubmitted = false;
 
             scene.onBeforeRenderObservable.add(() => {
-                checkCoinCollection(scene, playerMesh/* , coinSound */);
+                checkCoinCollection(scene, playerMesh, coinSound);
             
                 // Submit score once when all coins are collected
                 if (!scoreSubmitted && scene.metadata.coins?.length === 0) {
