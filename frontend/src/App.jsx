@@ -5,6 +5,7 @@ import Game from "./pages/Game";
 import Leaderboard from "./pages/Leaderboard";
 import { getToken, removeToken } from "./utils/auth";
 import "bootstrap/dist/css/bootstrap.min.css";
+import "./App.css";
 
 export default function App() {
   const [page, setPage] = useState("login");

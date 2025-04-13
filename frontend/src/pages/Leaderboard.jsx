@@ -23,7 +23,7 @@ const Leaderboard = ({ level = 1 }) => {
   return (
     <div className="mt-4">
       <h2 className="mb-3">Leaderboard – Level {level}</h2>
-      <p className="text-muted">(Sorted by highest score, then fastest time)</p>
+      <p className="onDark">(Sorted by highest score, then fastest time)</p>
       <table className="table table-striped table-bordered">
         <thead className="table-dark">
           <tr>
