@@ -80,7 +80,7 @@ export default function App() {
   return (
     <div>
       <nav className="navbar navbar-expand navbar-light bg-light px-3 mb-3">
-        <span className="navbar-brand">Maze Game</span>
+        <span className="navbar-brand"><img src="/assets/MazeRushLogo.png" alt="Maze Rush Logo" className="logo-img" width="275px" /></span>             
         <div className="navbar-nav me-auto">
           {!isLoggedIn && (
             <>
