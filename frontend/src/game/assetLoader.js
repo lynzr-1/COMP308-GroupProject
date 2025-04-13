@@ -37,21 +37,6 @@ export function loadAssets(scene, onAssetsLoaded) {
     }
   };
   
-  // --- ENEMY SKELETON
-  const skeletonTask = assetsManager.addMeshTask("skeletonTask", "", "/assets/", "Skeleton_Minion.glb");
-
-  skeletonTask.onSuccess = function(task) {
-    try {
-      if (!task.loadedMeshes.length) { return; }
-      const skeleton = task.loadedMeshes[0];
-      skeleton.setEnabled(false);
-      scene.metadata = scene.metadata || {};
-      scene.metadata.skeletonTemplate = skeleton;
-    } catch (err) {
-      console.error("Skeleton task crashed:", err);
-    }
-  };
-
   // --- COLLECTIBLE HEART
   const heartTask = assetsManager.addMeshTask("heartTask", "", "/assets/", "heart_teamRed.gltf.glb");
 

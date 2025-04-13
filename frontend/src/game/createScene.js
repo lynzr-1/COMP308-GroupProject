@@ -6,6 +6,7 @@ import setupPlayerControls from "./playerControls";
 import { tileSize } from "./constants";
 import { placeCoins } from "./collectibles";
 import { checkCoinCollection } from "./collectibles";
+import { spawnEnemy, startEnemyPatrol } from "./enemyAI";
 
 export function createScene(engine, canvas) {
 
@@ -19,7 +20,7 @@ export function createScene(engine, canvas) {
     scene.clearColor = new BABYLON.Color4(0.1176, 0.1098, 0.1294, 0.5);
 
     //-----AUDIO
-    const coinSound = new BABYLON.Sound("coinSound", "/assets/coinSound.mp3", scene, null, { volume: 0.5, });
+    const coinSound = new BABYLON.Sound("coinSound", "/assets/coinSound.mp3", scene, null, { volume: 1.0, });
 
     //-----LIGHTING
     new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
@@ -44,7 +45,7 @@ export function createScene(engine, canvas) {
         }
     
         //generate and place the maze
-        const mazeArray = generateMazeArray(21, 21); //<--can change the size if needed but HAS to be odd numbers
+        const mazeArray = generateMazeArray(15, 15); //<--can change the size if needed but HAS to be odd numbers
         scene.metadata = scene.metadata || {};
         scene.metadata.mazeArray = mazeArray;
 
@@ -89,6 +90,23 @@ export function createScene(engine, canvas) {
 
             //add collectibles
             placeCoins(scene, 15);
+
+//-----INSTANTIATE AND ADD ENEMIES TO SCENE-----//
+            spawnEnemy(scene, scene.metadata.mazeArray).then(enemyMesh => {
+                const enemyObj = scene.metadata.enemies[0];
+                startEnemyPatrol(
+                    scene,
+                    scene.metadata.enemies[0],
+                    scene.metadata.mazeArray,
+                    () => {
+                      const playerPos = playerMesh.position;
+                      return {
+                        x: Math.floor(playerPos.x / tileSize),
+                        z: Math.floor(playerPos.z / tileSize),
+                      };
+                    }
+                  );
+            });
             
             //check for collisions with collectibles
             let scoreSubmitted = false;
