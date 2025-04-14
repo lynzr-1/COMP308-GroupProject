@@ -43,7 +43,7 @@ export function loadAssets(scene, onAssetsLoaded) {
   heartTask.onSuccess = function(task) {
     try {
       if (!task.loadedMeshes.length) { return; }
-      const heart = task.loadedMeshes[0];
+      const heart = task.loadedMeshes.find(mesh => mesh.name.toLowerCase().includes("heart") && mesh.getTotalVertices() > 0);
       heart.setEnabled(false);
       scene.metadata = scene.metadata || {};
       scene.metadata.heartTemplate = heart;

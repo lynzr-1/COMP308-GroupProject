@@ -1,5 +1,7 @@
 import * as BABYLON from "@babylonjs/core";
 import { tileSize } from "./constants";
+import PF from "pathfinding";
+import { updatePlayerHealth } from "./playerHealth";
 
 //----CREATE ENEMY
 
@@ -12,8 +14,8 @@ export function spawnEnemy(scene, mazeArray) {
       enemy.scaling = new BABYLON.Vector3(0.7, 0.7, 0.7);
 
       //spawn enemy at opposite side of map
-      const spawnX = 13;
-      const spawnZ = 1;
+      const spawnX = 19;
+      const spawnZ = 19;
 
       enemy.position = new BABYLON.Vector3(spawnX * tileSize, 0, spawnZ * tileSize);
 
@@ -43,39 +45,35 @@ export function spawnEnemy(scene, mazeArray) {
 
 //---MAKE ENEMY MOVE AROUND MAZE TOWARDS THE PLAYER
 
-export function startEnemyPatrol(scene, enemyObj, mazeArray, getPlayerPosition) {
-    const directions = [
-      { x: 1, z: 0 },
-      { x: -1, z: 0 },
-      { x: 0, z: 1 },
-      { x: 0, z: -1 },
-    ];
+export function startEnemyPathfinding(scene, enemyObj, mazeArray, playerMesh) {
+
+    const grid = new PF.Grid(mazeArray);
+    const finder = new PF.AStarFinder();
   
     const moveEnemy = () => {
-      const { mesh, tile } = enemyObj;
+        const { mesh, tile, anim } = enemyObj;
+
+        if (scene.metadata.gamePaused) return;
   
-      const playerTile = getPlayerPosition();
-      const dx = playerTile.x - tile.x;
-      const dz = playerTile.z - tile.z;
+      //convert player position to tile coordinates
+      const playerX = Math.floor(playerMesh.position.x / tileSize);
+      const playerZ = Math.floor(playerMesh.position.z / tileSize);
   
-      // Always move toward player (basic chase logic)
-      let dir = { x: 0, z: 0 };
-      if (Math.abs(dx) > Math.abs(dz)) {
-        dir.x = dx > 0 ? 1 : -1;
-      } else {
-        dir.z = dz > 0 ? 1 : -1;
-      }
+      //clone grid because finder modifies it
+      const gridClone = grid.clone();
+      const path = finder.findPath(tile.x, tile.z, playerX, playerZ, gridClone);
   
-      const newX = tile.x + dir.x;
-      const newZ = tile.z + dir.z;
+      //if path has at least 2 points (current + next)
+      if (path.length > 1) {
+        const [ , [nextX, nextZ] ] = path;
   
-      if (mazeArray[newZ]?.[newX] === 0) {
-        const target = new BABYLON.Vector3(newX * tileSize, 0, newZ * tileSize);
-  
-        const angle = Math.atan2(dir.z, dir.x);
+        const target = new BABYLON.Vector3(nextX * tileSize, 0, nextZ * tileSize);
+        const angle = Math.atan2(nextZ - tile.z, nextX - tile.x);
         mesh.rotation.y = -angle + Math.PI / 2;
-  
-        if (enemyObj.anim?.walkAnim) enemyObj.anim.walkAnim.start(true);
+
+          // play walk animation, stop idle when moving
+            if (anim.idleAnim) anim.idleAnim.stop();
+            if (anim.walkAnim) anim.walkAnim.start(true);
   
         BABYLON.Animation.CreateAndStartAnimation(
           `enemyMove-${Date.now()}`,
@@ -88,17 +86,41 @@ export function startEnemyPatrol(scene, enemyObj, mazeArray, getPlayerPosition) 
           BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
           null,
           () => {
-            enemyObj.tile = { x: newX, z: newZ };
-  
-            if (enemyObj.anim?.walkAnim) enemyObj.anim.walkAnim.stop();
-            if (enemyObj.anim?.idleAnim) enemyObj.anim.idleAnim.start(true);
-            console.log(`Enemy moved to (${newX}, ${newZ})`);
+            enemyObj.tile = { x: nextX, z: nextZ };
+            // stop walk animation, start idle after movement ends
+            if (anim.walkAnim) anim.walkAnim.stop();
+            if (anim.idleAnim) anim.idleAnim.start(true);
           }
         );
       }
   
-      setTimeout(moveEnemy, 2000); // keep chasing
+      if (!scene.metadata.gamePaused) {
+        setTimeout(() => moveEnemy(), 1000);
+      } //enemy moves every 1 second unless game is paused
     };
   
-    setTimeout(moveEnemy, 2000); // start after 2 seconds
+    moveEnemy();
+  }
+
+  //---CHECK FOR COLLISIONS WITH THE PLAYER
+
+  export function checkEnemyPlayerCollision(scene) {
+    const player = scene.metadata.player?.mesh;
+    const enemies = scene.metadata.enemies || [];
+  
+    if (!player) return;
+  
+    enemies.forEach(enemy => {
+      const dist = BABYLON.Vector3.Distance(player.position, enemy.mesh.position);
+  
+      if (dist < 1.5 && !scene.metadata.player.isInvincible) {
+        updatePlayerHealth(scene, -20); // damage amount
+        scene.metadata.player.isInvincible = true;
+  
+        //reset invincibility after short delay
+        setTimeout(() => {
+          scene.metadata.player.isInvincible = false;
+        }, 2000); // 2 sec cooldown
+      }
+    });
   }

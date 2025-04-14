@@ -38,6 +38,7 @@ const typeDefs = gql`
     register(username: String!, password: String!): String
     login(username: String!, password: String!): String
     saveProgress(level: Int!, score: Int!, timeTaken: Int!, wonAgainstAI: Boolean!): Boolean
+    unlockAchievements(achievements: [String!]!): Boolean
   }
 `;
 
