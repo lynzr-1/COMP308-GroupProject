@@ -106,8 +106,8 @@ export function createScene(engine, canvas) {
 
             //initialize game counter
             scene.metadata.timer = {
-                totalTime: 120, // 2 min
-                remaining: 120
+                totalTime: 90, // 90 sec
+                remaining: 90
             };
             
             //initialize score
