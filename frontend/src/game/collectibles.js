@@ -1,5 +1,91 @@
 import * as BABYLON from "@babylonjs/core";
 import { tileSize } from "./constants";
+import { updatePlayerHealth } from "./playerHealth";
+
+//============ HEALTH COLLECTIBLES ============//
+
+export function placeHearts(scene, count = 1) {
+
+    const mazeArray = scene.metadata?.mazeArray;
+    const heartTemplate = scene.metadata?.heartTemplate;
+
+    if (!mazeArray || !heartTemplate) {
+        console.warn("Missing maze or heart template!", {
+            mazeArray,
+            heartTemplate
+        });
+        
+        return;
+    }
+
+    const heartsPlaced = [];
+
+    let safetyCounter = 0; 
+
+    while (heartsPlaced.length < count && safetyCounter < 500) {
+
+        const x = Math.floor(Math.random() * mazeArray[0].length);
+        const z = Math.floor(Math.random() * mazeArray.length);
+        const tileType = mazeArray[z][x];
+        const heartsAlreadyPlaced = heartsPlaced.some(p => p.x === x && p.z === z);
+            
+            if (tileType === 0 && !heartsAlreadyPlaced) {
+                const heart = heartTemplate.clone(`heart-${x}-${z}`, null, true);
+                heart.position = new BABYLON.Vector3(-x * tileSize, 1.0, z * tileSize);
+                heart.scaling = new BABYLON.Vector3(0.6, 0.6, 0.6);
+                heart.rotation.y = Math.random() * Math.PI;   
+                heart.setEnabled(true);
+                scene.addMesh(heart);
+                console.log(`Heart spawned at (${x}, ${z})`);
+                heartsPlaced.push({ x, z, mesh: heart });
+            }
+            
+        safetyCounter++;
+    }     
+
+    scene.metadata.hearts = heartsPlaced;
+
+        //animate hearts to rotate
+        scene.onBeforeRenderObservable.add(() => {
+            const hearts = scene.metadata.hearts || [];
+            hearts.forEach(({ mesh }) => {
+                if (mesh && mesh.isEnabled()) {
+                    mesh.rotate(BABYLON.Axis.Y, 0.03, BABYLON.Space.LOCAL);
+                }
+            });
+        });
+
+}
+
+  //---check if player collides with a heart
+  export function checkHeartCollection(scene, playerMesh) {
+
+    const hearts = scene.metadata?.hearts || [];
+  
+    //filter out collected hearts
+    scene.metadata.hearts = hearts.filter(({ mesh }) => {
+
+        const heartCenter = mesh.getBoundingInfo().boundingBox.centerWorld;
+        const playerPos = playerMesh.position;      
+        const dist = BABYLON.Vector3.Distance(heartCenter, playerPos);
+    
+        if (dist < 1.5) {
+            mesh.setEnabled(false); //hide collected heart
+
+            updatePlayerHealth(scene, 20);
+            
+            return false;
+        }
+    
+        return true;
+    });
+
+    // ---RESPAWN HEARTS IF ALL COLLECTED---
+    if (scene.metadata.hearts.length === 0 && !scene.metadata.gameOver) {
+        console.log("All hearts collected! Respawning...");
+        placeHearts(scene, 1);
+    }
+}
 
 //============ COIN COLLECTIBLES ============//
 
@@ -62,15 +148,14 @@ export function placeCoins(scene, count = 10) {
   
     //filter out collected coins
     scene.metadata.coins = coins.filter(({ mesh }) => {
-        // Use bounding box center in world space
+
         const coinCenter = mesh.getBoundingInfo().boundingBox.centerWorld;
-        const playerPos = playerMesh.position;
-           
+        const playerPos = playerMesh.position;      
         const dist = BABYLON.Vector3.Distance(coinCenter, playerPos);
     
         if (dist < 1.5) {
             mesh.setEnabled(false); //hide collected coin
-            scene.metadata.score = (scene.metadata.score || 0) + 1;
+            scene.metadata.score = (scene.metadata.score || 0) + 1; //increment score
 
             //play coin collect sound if it's ready
             if (coinSound && coinSound.isReady()) {
@@ -78,11 +163,21 @@ export function placeCoins(scene, count = 10) {
             }
 
             //update score
+            if (scene.metadata.ui?.coinBg?.children?.[0]) {
+                scene.metadata.ui.coinBg.children[0].text = `SCORE: ${scene.metadata.score}`;
+            }
+            
             console.log("Coin Collected! Score:", scene.metadata.score);
             return false;
         }
     
         return true;
     });
+
+    // ---RESPAWN COINS IF ALL COLLECTED---
+    if (scene.metadata.coins.length === 0 && !scene.metadata.gameOver) {
+        console.log("All coins collected! Respawning...");
+        placeCoins(scene, 20);
+    }
 }
   

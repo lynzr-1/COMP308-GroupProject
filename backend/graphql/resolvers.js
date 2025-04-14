@@ -60,7 +60,26 @@ const resolvers = {
       return true;
     },
     
+    unlockAchievements: async (_, { achievements }, { user }) => {
+      if (!user) throw new Error("Unauthorized");
+  
+      const existingUser = await User.findById(user.id);
+      if (!existingUser) throw new Error("User not found");
+  
+      const newAchievements = achievements.filter(
+        a => !existingUser.achievements.includes(a)
+      );
+  
+      if (newAchievements.length > 0) {
+        existingUser.achievements.push(...newAchievements);
+        await existingUser.save();
+      }
+  
+      return true;
+    },
+
   },
+  
 };
 
 module.exports = resolvers;

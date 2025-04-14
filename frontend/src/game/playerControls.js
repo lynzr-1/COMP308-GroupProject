@@ -81,6 +81,9 @@ export default function setupPlayerControls(scene, startPos) {
 
       // Handle keyboard input
       scene.onKeyboardObservable.add((kbInfo) => {
+        
+        if (scene.metadata.gamePaused) return;
+
         if (kbInfo.type === BABYLON.KeyboardEventTypes.KEYDOWN) {
           let { x, z } = playerPos;
 
