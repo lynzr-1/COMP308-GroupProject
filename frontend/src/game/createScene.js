@@ -190,6 +190,7 @@ async function handleGameOver(scene, levelStartTime) {
     const score = scene.metadata?.score || 0;
     const health = scene.metadata?.player?.health || 0;
     const level = 1;
+    const timer = scene.metadata.timer;
     const timeTaken = Math.floor((Date.now() - levelStartTime) / 1000);
   
     //submit final score to back end for tracking
@@ -206,6 +207,7 @@ async function handleGameOver(scene, levelStartTime) {
     //health achievements
         if (health === 100) achievements.push("full_health_win");
         if (health === 20) achievements.push("barely_survived");
+        if (health === 0 && timer.remaining > 0) achievements.push("fragile");
 
     // Submit achievements before showing overlay
     if (achievements.length > 0) {
