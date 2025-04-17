@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const progressSchema = new mongoose.Schema({
-  userId: String,
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   level: Number,
   score: Number,
   timeTaken: Number,

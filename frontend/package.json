@@ -12,8 +12,12 @@
   "dependencies": {
     "@apollo/client": "^3.13.5",
     "@babylonjs/core": "^8.0.1",
+    "@babylonjs/gui": "^8.2.0",
     "@babylonjs/loaders": "^8.0.1",
+    "bootstrap": "^5.3.5",
     "graphql": "^16.10.0",
+    "maze-generator": "^0.1.2",
+    "pathfinding": "^0.4.18",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useMutation, gql } from "@apollo/client";
+import React, { useState } from "react";
+import { gql, useMutation } from "@apollo/client";
 import { saveToken } from "../utils/auth";
 
 const LOGIN = gql`
@@ -8,12 +8,14 @@ const LOGIN = gql`
   }
 `;
 
-export default function Login() {
+const Login = ({ onLogin }) => {
+
   const [form, setForm] = useState({ username: "", password: "" });
   const [login, { loading, error }] = useMutation(LOGIN, {
     onCompleted: (data) => {
       saveToken(data.login);
-      alert("Login successful!");
+      alert("Logged in!");
+      onLogin?.(data.login); 
     },
   });
 
@@ -27,14 +29,40 @@ export default function Login() {
   };
 
   return (
-    <div>
-      <h2>Login</h2>
-      <form onSubmit={handleSubmit}>
-        <input name="username" onChange={handleChange} placeholder="Username" />
-        <input name="password" onChange={handleChange} type="password" placeholder="Password" />
-        <button type="submit" disabled={loading}>Login</button>
-      </form>
-      {error && <p>Error: {error.message}</p>}
+    <div className="d-flex justify-content-center mt-5">
+      <div className="card p-4" style={{ width: "100%", maxWidth: "400px" }}>
+        <h3 className="card-title mb-3 text-center">Login</h3>
+        {error && <div className="alert alert-danger">Invalid credentials</div>}
+        <form onSubmit={handleSubmit}>
+          <div className="mb-3">
+            <label className="form-label">Username</label>
+            <input
+              name="username"
+              type="text"
+              className="form-control"
+              value={form.username}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div className="mb-3">
+            <label className="form-label">Password</label>
+            <input
+              name="password"
+              type="password"
+              className="form-control"
+              value={form.password}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <button className="btn btn-primary" disabled={loading}>
+            {loading ? "Logging in..." : "Login"}
+          </button>
+        </form>
+      </div>
     </div>
   );
-}
+};
+
+export default Login;
